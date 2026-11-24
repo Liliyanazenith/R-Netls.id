@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>R - Netls</title>
+<style>
+  :root {
+    --bg: #0f0f13; --panel: #1e1e24; --text: #fff; --accent: #ff3333;
+    --ok: #00cc66; --border: #333;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+  body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; }
+  
+  /* Header */
+  .header { text-align: center; padding: 30px 20px 10px; }
+  .header h1 { font-size: 28px; font-weight: 900; letter-spacing: 2px; color: var(--accent); text-shadow: 0 0 10px rgba(255,51,51,0.5); }
+  .header p { color: #888; font-size: 12px; margin-top: 5px; letter-spacing: 1px;}
+
+  /* Form */
+  .container { padding: 20px; flex: 1; }
+  .field { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+  .field label { font-size: 12px; color: #aaa; margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 1px;}
+  .field input { width: 100%; background: transparent; border: none; color: var(--text); font-size: 18px; outline: none; font-weight: bold;}
+  
+  /* Button */
+  .btn-banned { 
+    width: 100%; padding: 18px; background: var(--accent); color: #fff; 
+    border: none; border-radius: 10px; font-size: 18px; font-weight: 900; 
+    letter-spacing: 1px; cursor: pointer; transition: 0.2s;
+    box-shadow: 0 5px 15px rgba(255,51,51,0.3);
+  }
+  .btn-banned:active { transform: scale(0.98); }
+  .btn-banned:disabled { background: #555; box-shadow: none; color: #999; }
+
+  /* Status Box */
+  .status-box { margin-top: 20px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 15px; display: none; }
+  .status-text { text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 10px; }
+  .progress { width: 100%; height: 8px; background: #000; border-radius: 4px; overflow: hidden; }
+  .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: 0.3s; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>R - NETLS</h1>
+  <p>WA BANNED REPORTER</p>
+</div>
+
+<div class="container">
+  <div class="field">
+    <label>Target Nomor WA</label>
+    <input type="number" id="target" placeholder="628123456789">
+  </div>
+  <div class="field">
+    <label>Jumlah Report</label>
+    <input type="number" id="reports" value="100" placeholder="100">
+  </div>
+  <div class="field">
+    <label>Backend Server (Codespaces URL)</label>
+    <input type="url" id="backend" placeholder="https://xxx-8000.app.github.dev">
+  </div>
+
+  <button class="btn-banned" id="btnBanned" onclick="startReport()">BANNED NOMOR WA</button>
+
+  <div class="status-box" id="statusBox">
+    <div class="status-text" id="statusText">Memproses...</div>
+    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+    <div id="logText" style="font-size:11px; color:#888; margin-top:10px; font-family:monospace; text-align:center;"></div>
+  </div>
+</div>
+
+<script>
+let isRunning = false;
+
+async function startReport() {
+  const target = document.getElementById('target').value.trim();
+  const reports = parseInt(document.getElementById('reports').value);
+  const backend = document.getElementById('backend').value.trim().replace(/\/$/, "");
+
+  if (!target || !reports || !backend) {
+    alert("Isi semua kolom dengan benar BOS!");
+    return;
+  }
+
+  const btn = document.getElementById('btnBanned');
+  const statusBox = document.getElementById('statusBox');
+  const statusText = document.getElementById('statusText');
+  const progressBar = document.getElementById('progressBar');
+  const logText = document.getElementById('logText');
+
+  btn.disabled = true;
+  btn.innerText = "SEDANG MEMBANNED...";
+  statusBox.style.display = "block";
+  statusText.innerText = "Mengirim Report...";
+  statusText.style.color = "#fff";
+  progressBar.style.width = "0%";
+
+  try {
+    const res = await fetch(`${backend}/api/report`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ target, reports })
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      progressBar.style.width = "100%";
+      statusText.innerText = "SUCCESS REPORT";
+      statusText.style.color = "var(--ok)";
+      logText.innerText = `Nomor ${target} berhasil dilaporkan sebanyak ${reports} kali. Status: NONAKTIF/BANNED.`;
+    } else {
+      throw new Error(data.error || "Gagal");
+    }
+  } catch (err) {
+    statusText.innerText = "GAGAL REPORT";
+    statusText.style.color = "var(--accent)";
+    logText.innerText = err.message;
+  }
+
+  btn.disabled = false;
+  btn.innerText = "BANNED NOMOR WA";
+}
+</script>
+</body>
+  </html>
